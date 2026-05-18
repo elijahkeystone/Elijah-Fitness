@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Keystone Fitness</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0f1117; --bg2: #181c27; --bg3: #1e2334;
+  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.15);
+  --text: #f0f2f7; --text2: #9aa3b8; --text3: #626b82;
+  --gold: #c8a84b; --gold2: #e8c96a;
+  --blue: #3a7bd5; --blue-bg: rgba(58,123,213,0.12);
+  --green: #2ecc8a; --green-bg: rgba(46,204,138,0.1);
+  --amber: #e8a020; --amber-bg: rgba(232,160,32,0.1);
+  --pink: #d45a7a; --pink-bg: rgba(212,90,122,0.1);
+  --slate: rgba(255,255,255,0.04);
+  --r: 10px; --rsm: 6px;
+  --header-h: 56px;
+  --bottom-h: 60px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+/* ── HEADER ── */
+.app-header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: var(--header-h);
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 30px; height: 30px; background: var(--gold); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #0f1117; flex-shrink: 0; }
+.logo-text { font-size: 15px; font-weight: 600; color: var(--text); }
+.logo-sub { font-size: 11px; color: var(--text3); }
+.menu-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text2); padding: 8px; border-radius: var(--rsm);
+  font-size: 20px; line-height: 1; -webkit-tap-highlight-color: transparent;
+  min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center;
+}
+
+/* ── DRAWER NAV (mobile) ── */
+.nav-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  background: rgba(0,0,0,0.5); -webkit-tap-highlight-color: transparent;
+}
+.nav-overlay.open { display: block; }
+.nav-drawer {
+  position: fixed; top: 0; left: -260px; bottom: 0; width: 240px; z-index: 400;
+  background: var(--bg2); border-right: 1px solid var(--border);
+  overflow-y: auto; transition: left 0.25s ease; padding-bottom: 40px;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.nav-drawer.open { left: 0; }
+.nav-drawer-header { padding: 16px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+.nav-drawer-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.nav-drawer-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.nav-group-label { padding: 12px 16px 4px; font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 12px 16px;
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; color: var(--text2); text-align: left;
+  font-family: inherit; border-left: 3px solid transparent;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 48px;
+}
+.nav-item:active { background: var(--slate); }
+.nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(200,168,75,0.06); font-weight: 500; }
+.nav-icon { font-size: 16px; width: 20px; text-align: center; opacity: 0.8; }
+
+/* ── BOTTOM TAB BAR ── */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  background: var(--bg2); border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-bottom);
+  height: calc(var(--bottom-h) + var(--safe-bottom));
+}
+.bottom-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; gap: 3px;
+  padding: 6px 2px; font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 44px;
+}
+.bottom-tab-icon { font-size: 18px; color: var(--text3); transition: color 0.15s; }
+.bottom-tab-label { font-size: 10px; color: var(--text3); font-weight: 500; letter-spacing: 0.02em; transition: color 0.15s; }
+.bottom-tab.active .bottom-tab-icon,
+.bottom-tab.active .bottom-tab-label { color: var(--gold); }
+
+/* ── MAIN SCROLL AREA ── */
+.main-scroll {
+  position: fixed;
+  top: var(--header-h);
+  bottom: calc(var(--bottom-h) + var(--safe-bottom));
+  left: 0; right: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.page { display: none; padding: 16px; padding-bottom: 24px; max-width: 760px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ── DESKTOP SIDEBAR (≥768px) ── */
+@media (min-width: 768px) {
+  .menu-btn { display: none; }
+  .bottom-bar { display: none; }
+  .app-header { padding: 0 24px; }
+  .main-scroll {
+    left: 220px;
+    bottom: 0;
+  }
+  .desktop-nav {
+    display: flex; flex-direction: column;
+    position: fixed; top: var(--header-h); left: 0; bottom: 0; width: 220px;
+    background: var(--bg2); border-right: 1px solid var(--border);
+    overflow-y: auto; padding: 12px 0;
+    z-index: 100;
+  }
+  .page { padding: 24px; }
+}
+@media (max-width: 767px) {
+  .desktop-nav { display: none; }
+}
+
+/* ── CONTENT STYLES ── */
+.page-title { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 3px; letter-spacing: -0.3px; }
+.page-sub { font-size: 13px; color: var(--text3); margin-bottom: 1.25rem; }
+.info-bar { background: var(--blue-bg); border: 1px solid rgba(58,123,213,0.25); border-left: 3px solid var(--blue); border-radius: 0 var(--rsm) var(--rsm) 0; padding: 10px 12px; font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 1rem; }
+.info-bar strong { color: var(--text); font-weight: 500; }
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+@media (min-width: 480px) { .metric-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); } }
+.metric { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; }
+.metric-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px; }
+.metric-val { font-size: 20px; font-weight: 600; color: var(--gold); letter-spacing: -0.5px; }
+.metric-unit { font-size: 11px; color: var(--text3); font-weight: 400; }
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; margin-bottom: 12px; }
+.card-title { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.card p { font-size: 14px; color: var(--text2); line-height: 1.7; }
+.card p + p { margin-top: 8px; }
+.card strong { color: var(--text); font-weight: 500; }
+.sec-div { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; padding: 6px 0; border-bottom: 1px solid var(--border); margin: 1rem 0 10px; display: flex; align-items: center; gap: 8px; }
+.sd-tag { background: var(--gold); color: #0f1117; font-size: 10px; padding: 1px 7px; border-radius: 99px; font-weight: 700; }
+
+/* exercise tables — scroll horizontally on mobile */
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 340px; }
+thead th { text-align: left; padding: 8px 8px; font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+tbody td { padding: 10px 8px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+tbody td strong { color: var(--text); font-weight: 500; }
+.td-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.day-row { display: grid; grid-template-columns: 80px 1fr; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); align-items: start; }
+.day-row:last-child { border-bottom: none; }
+.day-name { font-size: 12px; font-weight: 600; color: var(--text3); padding-top: 2px; }
+.day-body { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.day-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; margin-bottom: 4px; }
+.tag-push { background: var(--blue-bg); color: #6ba3e8; border: 1px solid rgba(58,123,213,0.2); }
+.tag-pull { background: var(--green-bg); color: #4ddaa0; border: 1px solid rgba(46,204,138,0.2); }
+.tag-liss { background: var(--amber-bg); color: #e8b84d; border: 1px solid rgba(232,160,32,0.2); }
+.tag-church { background: var(--pink-bg); color: #e88aa8; border: 1px solid rgba(212,90,122,0.2); }
+
+.meal-row { padding: 11px 0; border-bottom: 1px solid var(--border); }
+.meal-row:last-child { border-bottom: none; }
+.meal-time { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.meal-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.meal-detail { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+.rule-block { background: var(--bg3); border-radius: var(--rsm); padding: 10px 12px; margin-bottom: 8px; font-size: 13px; color: var(--text2); line-height: 1.6; }
+.rule-block strong { color: var(--gold); font-weight: 500; }
+
+.supp-row { padding: 11px 0; border-bottom: 1px solid var(--border); }
+.supp-row:last-child { border-bottom: none; }
+.supp-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.supp-dose { font-size: 11px; color: var(--gold); margin-bottom: 4px; }
+.supp-detail { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.tier-label { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 99px; margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+.t1 { background: var(--green-bg); color: #4ddaa0; border: 1px solid rgba(46,204,138,0.2); }
+.t2 { background: var(--blue-bg); color: #6ba3e8; border: 1px solid rgba(58,123,213,0.2); }
+.t3 { background: var(--amber-bg); color: #e8b84d; border: 1px solid rgba(232,160,32,0.2); }
+.skip-l { background: var(--slate); color: var(--text3); border: 1px solid var(--border); }
+.cost-row { display: flex; justify-content: space-between; align-items: center; background: rgba(200,168,75,0.08); border: 1px solid rgba(200,168,75,0.2); border-radius: var(--rsm); padding: 10px 12px; margin-top: 10px; font-size: 13px; color: var(--text2); }
+.cost-row strong { color: var(--gold); font-size: 16px; font-weight: 600; }
+
+.milestone-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.milestone-row:last-child { border-bottom: none; }
+.ms-dot { min-width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.ms-m1 { background: var(--blue-bg); color: #6ba3e8; border: 1px solid rgba(58,123,213,0.3); }
+.ms-m2 { background: var(--green-bg); color: #4ddaa0; border: 1px solid rgba(46,204,138,0.3); }
+.ms-m3 { background: var(--amber-bg); color: #e8b84d; border: 1px solid rgba(232,160,32,0.3); }
+.ms-m6 { background: rgba(200,168,75,0.12); color: var(--gold2); border: 1px solid rgba(200,168,75,0.3); }
+.ms-m12 { background: rgba(200,168,75,0.2); color: var(--gold2); border: 1px solid rgba(200,168,75,0.5); }
+.ms-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+.ms-body { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+.liss-row { display: grid; grid-template-columns: 90px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: start; }
+.liss-row:last-child { border-bottom: none; }
+.liss-label { font-size: 12px; font-weight: 500; color: var(--text3); }
+.liss-body { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* ── TRACKER ── */
+.week-nav-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.week-nav-btns { display: flex; align-items: center; gap: 10px; }
+.wn-btn {
+  background: var(--bg3); border: 1px solid var(--border2); color: var(--text2);
+  padding: 8px 16px; border-radius: var(--rsm); cursor: pointer;
+  font-size: 13px; font-family: inherit; min-height: 44px; min-width: 44px;
+  -webkit-tap-highlight-color: transparent;
+}
+.wn-btn:active { background: var(--bg2); }
+.week-label { font-size: 15px; font-weight: 600; color: var(--text); }
+.week-range-txt { font-size: 12px; color: var(--text3); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px; }
+.cal-cell { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rsm); padding: 7px 2px; text-align: center; }
+.cal-cell.tap { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cal-cell.tap:active { background: var(--bg2); }
+.cal-cell.logged { border-color: rgba(46,204,138,0.35); background: rgba(46,204,138,0.05); }
+.cal-dn { font-size: 11px; font-weight: 600; color: var(--text2); }
+.cal-dt { font-size: 8px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.03em; margin-top: 1px; }
+.cal-dot { width: 4px; height: 4px; border-radius: 50%; background: #4ddaa0; margin: 4px auto 0; opacity: 0; }
+.cal-cell.logged .cal-dot { opacity: 1; }
+.prog-wrap { margin-bottom: 14px; }
+.prog-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: 4px; }
+.prog-track { background: var(--bg3); border-radius: 99px; height: 5px; }
+.prog-fill { height: 100%; background: var(--gold); border-radius: 99px; transition: width 0.3s; }
+.stabs-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+.stab {
+  padding: 9px 14px; border-radius: var(--rsm); border: 1px solid var(--border2);
+  background: transparent; cursor: pointer; font-size: 12px; font-weight: 500;
+  color: var(--text3); font-family: inherit; white-space: nowrap;
+  -webkit-tap-highlight-color: transparent; min-height: 44px;
+}
+.stab:active { opacity: 0.7; }
+.stab.active { color: var(--gold); border-color: rgba(200,168,75,0.4); background: rgba(200,168,75,0.08); }
+.stab.done { color: #4ddaa0; border-color: rgba(46,204,138,0.35); background: var(--green-bg); }
+.spanel { display: none; }
+.spanel.active { display: block; }
+
+.ex-block { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 12px; }
+.ex-block.locked-block { border-color: rgba(46,204,138,0.3); }
+.ex-top { padding: 12px 12px 10px; border-bottom: 1px solid var(--border); }
+.ex-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.ex-title { font-size: 14px; font-weight: 500; color: var(--text); }
+.ex-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.ex-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.target-badge { font-size: 11px; color: var(--text2); background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--rsm); padding: 3px 8px; }
+.up-badge { font-size: 11px; font-weight: 600; color: #4ddaa0; background: var(--green-bg); border: 1px solid rgba(46,204,138,0.35); border-radius: var(--rsm); padding: 3px 8px; display: none; }
+
+.ex-body { padding: 12px; }
+.sets-hdr { display: grid; grid-template-columns: 24px 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+.sets-row2 { display: grid; grid-template-columns: 24px 1fr 1fr 1fr; gap: 6px; align-items: center; margin-bottom: 8px; }
+.sh { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.04em; }
+.snum { font-size: 12px; color: var(--text3); font-weight: 600; }
+.sinput {
+  background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--rsm);
+  padding: 9px 8px; font-size: 14px; color: var(--text); width: 100%;
+  outline: none; font-family: inherit;
+  -webkit-appearance: none; appearance: none;
+}
+.sinput:focus { border-color: var(--gold); }
+.sinput::placeholder { color: var(--text3); }
+.sinput.hit { border-color: rgba(46,204,138,0.5); background: rgba(46,204,138,0.05); }
+.sinput:disabled { opacity: 0.5; background: var(--bg); }
+.tgt-cell { font-size: 10px; color: var(--text3); line-height: 1.4; }
+
+.ex-note {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--rsm); padding: 9px 10px; font-size: 13px; color: var(--text2);
+  resize: vertical; min-height: 52px; outline: none; font-family: inherit;
+  margin-top: 10px; -webkit-appearance: none;
+}
+.ex-note:focus { border-color: var(--gold); }
+.ex-note::placeholder { color: var(--text3); }
+.ex-note:disabled { opacity: 0.5; background: var(--bg); }
+
+.ex-actions { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.lock-btn {
+  background: transparent; border: 1px solid var(--border2); color: var(--text3);
+  padding: 7px 14px; border-radius: var(--rsm); cursor: pointer;
+  font-size: 12px; font-weight: 500; font-family: inherit;
+  -webkit-tap-highlight-color: transparent; min-height: 36px;
+}
+.lock-btn:active { opacity: 0.7; }
+.lock-btn.locked { background: rgba(46,204,138,0.08); border-color: rgba(46,204,138,0.35); color: #4ddaa0; }
+.locked-stamp { font-size: 11px; color: #4ddaa0; opacity: 0.8; }
+
+.sess-note-wrap { margin-top: 4px; }
+.sess-note {
+  width: 100%; background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: var(--rsm); padding: 10px 12px; font-size: 13px; color: var(--text2);
+  resize: vertical; min-height: 68px; outline: none; font-family: inherit;
+  -webkit-appearance: none;
+}
+.sess-note:focus { border-color: var(--gold); }
+.sess-note::placeholder { color: var(--text3); }
+.save-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.save-btn {
+  background: rgba(200,168,75,0.1); border: 1px solid rgba(200,168,75,0.35);
+  color: var(--gold); padding: 12px 22px; border-radius: var(--rsm);
+  cursor: pointer; font-size: 14px; font-weight: 500; font-family: inherit;
+  -webkit-tap-highlight-color: transparent; min-height: 48px;
+}
+.save-btn:active { background: rgba(200,168,75,0.2); }
+.save-ok { font-size: 13px; color: #4ddaa0; opacity: 0; transition: opacity 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-mark">KM</div>
+    <div>
+      <div class="logo-text">Keystone Fitness</div>
+      <div class="logo-sub">Mr. Aranda · Goal: 205–215 lbs</div>
+    </div>
+  </div>
+  <button class="menu-btn" id="menu-open-btn" aria-label="Menu">☰</button>
+</header>
+
+<!-- MOBILE DRAWER -->
+<div class="nav-overlay" id="nav-overlay"></div>
+<nav class="nav-drawer" id="nav-drawer">
+  <div class="nav-drawer-header">
+    <div class="nav-drawer-title">Keystone Fitness</div>
+    <div class="nav-drawer-sub">Mr. Aranda · 248 lbs · 6'0" · 28 yrs</div>
+  </div>
+  <div class="nav-group-label">Program</div>
+  <button class="nav-item active" data-page="overview">  <span class="nav-icon">◎</span> Overview</button>
+  <button class="nav-item" data-page="schedule"><span class="nav-icon">⬡</span> Weekly schedule</button>
+  <div class="nav-group-label">Training</div>
+  <button class="nav-item" data-page="push"><span class="nav-icon">↑</span> Push days</button>
+  <button class="nav-item" data-page="pull"><span class="nav-icon">↓</span> Pull days</button>
+  <button class="nav-item" data-page="cardio"><span class="nav-icon">◌</span> LISS cardio</button>
+  <div class="nav-group-label">Fuel</div>
+  <button class="nav-item" data-page="nutrition"><span class="nav-icon">⊡</span> Nutrition</button>
+  <button class="nav-item" data-page="supps"><span class="nav-icon">⊕</span> Supplements</button>
+  <div class="nav-group-label">Tracker</div>
+  <button class="nav-item" data-page="tracker"><span class="nav-icon">✎</span> Workout log</button>
+  <div class="nav-group-label">Progress</div>
+  <button class="nav-item" data-page="milestones"><span class="nav-icon">◈</span> Milestones</button>
+  <button class="nav-item" data-page="checkins"><span class="nav-icon">✓</span> Check-ins</button>
+</nav>
+
+<!-- DESKTOP SIDEBAR -->
+<nav class="desktop-nav">
+  <div style="padding:14px 16px 10px;border-bottom:1px solid var(--border);margin-bottom:8px;">
+    <div style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.07em;">Program</div>
+  </div>
+  <button class="nav-item active" data-page="overview"><span class="nav-icon">◎</span> Overview</button>
+  <button class="nav-item" data-page="schedule"><span class="nav-icon">⬡</span> Weekly schedule</button>
+  <div style="padding:12px 16px 4px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Training</div>
+  <button class="nav-item" data-page="push"><span class="nav-icon">↑</span> Push days</button>
+  <button class="nav-item" data-page="pull"><span class="nav-icon">↓</span> Pull days</button>
+  <button class="nav-item" data-page="cardio"><span class="nav-icon">◌</span> LISS cardio</button>
+  <div style="padding:12px 16px 4px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Fuel</div>
+  <button class="nav-item" data-page="nutrition"><span class="nav-icon">⊡</span> Nutrition</button>
+  <button class="nav-item" data-page="supps"><span class="nav-icon">⊕</span> Supplements</button>
+  <div style="padding:12px 16px 4px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Tracker</div>
+  <button class="nav-item" data-page="tracker"><span class="nav-icon">✎</span> Workout log</button>
+  <div style="padding:12px 16px 4px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;">Progress</div>
+  <button class="nav-item" data-page="milestones"><span class="nav-icon">◈</span> Milestones</button>
+  <button class="nav-item" data-page="checkins"><span class="nav-icon">✓</span> Check-ins</button>
+</nav>
+
+<!-- BOTTOM TAB BAR (mobile) -->
+<div class="bottom-bar">
+  <button class="bottom-tab active" data-page="overview"><div class="bottom-tab-icon">◎</div><div class="bottom-tab-label">Overview</div></button>
+  <button class="bottom-tab" data-page="tracker"><div class="bottom-tab-icon">✎</div><div class="bottom-tab-label">Log</div></button>
+  <button class="bottom-tab" data-page="push"><div class="bottom-tab-icon">↑</div><div class="bottom-tab-label">Push</div></button>
+  <button class="bottom-tab" data-page="pull"><div class="bottom-tab-icon">↓</div><div class="bottom-tab-label">Pull</div></button>
+  <button class="bottom-tab" data-page="nutrition"><div class="bottom-tab-icon">⊡</div><div class="bottom-tab-label">Nutrition</div></button>
+</div>
+
+<!-- SCROLLABLE CONTENT -->
+<div class="main-scroll" id="main-scroll">
+
+<!-- OVERVIEW -->
+<div id="page-overview" class="page active">
+  <div class="page-title">Your program at a glance</div>
+  <div class="page-sub">Push/Pull 4-day split · Commercial gym · 60–70 min sessions</div>
+  <div class="info-bar">Maintenance <strong>~3,050 cal/day</strong> accounting for your 8–10k steps. Target: <strong>2,550 cal/day</strong> — 500-cal deficit, ~1 lb/week lost without sacrificing muscle.</div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">Maintenance</div><div class="metric-val">3,050<span class="metric-unit"> cal</span></div></div>
+    <div class="metric"><div class="metric-label">Target</div><div class="metric-val">2,550<span class="metric-unit"> cal</span></div></div>
+    <div class="metric"><div class="metric-label">Protein</div><div class="metric-val">200<span class="metric-unit"> g</span></div></div>
+    <div class="metric"><div class="metric-label">Train days</div><div class="metric-val">4<span class="metric-unit">/wk</span></div></div>
+    <div class="metric"><div class="metric-label">LISS days</div><div class="metric-val">2–3<span class="metric-unit">/wk</span></div></div>
+    <div class="metric"><div class="metric-label">Goal wt.</div><div class="metric-val">205–215<span class="metric-unit"> lbs</span></div></div>
+  </div>
+  <div class="card"><div class="card-title">Program structure</div><p>A <strong>Push/Pull 4-day split</strong> hitting every major muscle group twice weekly. Monday, Tuesday, Thursday, Saturday are training days. Squats and deadlifts anchor pull sessions and cover your lower body thoroughly.</p></div>
+  <div class="card"><div class="card-title">Philosophy</div><p>Modified StrongLifts/HIT hybrid. Compounds first — heavy and progressive. Isolation work follows for aesthetic shape. 60–70 minutes per session. The rule: <strong>add weight when you hit the rep ceiling.</strong> The workout log flags this automatically.</p></div>
+  <div class="card"><div class="card-title">The goal</div><p>Run with your shirt off and feel genuinely comfortable — even attractive. 12 months of consistency → 205–215 lbs with visible shoulder, chest, and back definition. Everything is built backward from that moment.</p></div>
+</div>
+
+<!-- SCHEDULE -->
+<div id="page-schedule" class="page">
+  <div class="page-title">Weekly schedule</div>
+  <div class="page-sub">Mon–Fri work · Thursday fellowship · Sunday church</div>
+  <div class="card">
+    <div class="day-row"><div class="day-name">Monday</div><div class="day-body"><span class="tag tag-push">Push A</span><div>Bench · OHP · Dips · Lateral raises · Tricep pushdown</div><div class="day-sub">Morning preferred · 60–70 min</div></div></div>
+    <div class="day-row"><div class="day-name">Tuesday</div><div class="day-body"><span class="tag tag-pull">Pull A</span><div>Deadlift · BB rows · Lat pulldown · Face pulls · Curls</div><div class="day-sub">Morning preferred · 60–70 min</div></div></div>
+    <div class="day-row"><div class="day-name">Wednesday</div><div class="day-body"><span class="tag tag-liss">LISS only</span><div>30–45 min walk, bike, or incline treadmill</div></div></div>
+    <div class="day-row"><div class="day-name">Thursday</div><div class="day-body"><span class="tag tag-push">Push B</span><div>Incline press · DB OHP · Cable flyes · Arnold press · OH tricep</div><div class="day-sub">Morning if possible — fellowship evening</div></div></div>
+    <div class="day-row"><div class="day-name">Friday</div><div class="day-body"><span class="tag tag-liss">LISS only</span><div>30–45 min walk or bike · lunch or after work</div></div></div>
+    <div class="day-row"><div class="day-name">Saturday</div><div class="day-body"><span class="tag tag-pull">Pull B</span><div>Back squat · Cable rows · DB row · Rear delt flyes · Hammer curls</div><div class="day-sub">Flexible timing · best training day</div></div></div>
+    <div class="day-row"><div class="day-name">Sunday</div><div class="day-body"><span class="tag tag-church">Church + rest</span><div>Full rest · walk after church counts as LISS</div></div></div>
+  </div>
+</div>
+
+<!-- PUSH -->
+<div id="page-push" class="page">
+  <div class="page-title">Push days</div>
+  <div class="page-sub">Chest · Shoulders · Triceps — twice weekly, different angles</div>
+  <div class="info-bar">Push A and Push B hit the same muscle groups from different angles — preventing adaptation and building a more complete physique.</div>
+  <div class="sec-div"><span class="sd-tag">Push A</span> Monday</div>
+  <div class="card"><div class="table-wrap">
+    <table><thead><tr><th>Exercise</th><th>Sets×Reps</th><th>Start</th><th>Note</th></tr></thead><tbody>
+      <tr><td><strong>Barbell bench press</strong><div class="td-note">Primary chest compound</div></td><td>4×5–8</td><td>95 lbs</td><td>Full ROM. +5 lbs at 8 reps all sets.</td></tr>
+      <tr><td><strong>Overhead press</strong><div class="td-note">Shoulder mass</div></td><td>3×6–8</td><td>65 lbs</td><td>Standing. Brace core hard.</td></tr>
+      <tr><td><strong>Dips</strong><div class="td-note">Lower chest + tricep</div></td><td>3×8–12</td><td>Bodyweight</td><td>Add weight after 3×12 BW is clean.</td></tr>
+      <tr><td><strong>DB lateral raises</strong><div class="td-note">Shoulder width</div></td><td>3×12–15</td><td>10 lbs</td><td>No swinging. Control the movement.</td></tr>
+      <tr><td><strong>Cable tricep pushdown</strong><div class="td-note">Isolation finish</div></td><td>3×12–15</td><td>35 lbs</td><td>Squeeze hard at the bottom.</td></tr>
+    </tbody></table>
+  </div></div>
+  <div class="sec-div"><span class="sd-tag">Push B</span> Thursday</div>
+  <div class="card"><div class="table-wrap">
+    <table><thead><tr><th>Exercise</th><th>Sets×Reps</th><th>Start</th><th>Note</th></tr></thead><tbody>
+      <tr><td><strong>Incline press</strong><div class="td-note">Upper chest</div></td><td>4×6–10</td><td>85 lbs</td><td>30–45° incline. Full stretch at bottom.</td></tr>
+      <tr><td><strong>DB shoulder press</strong><div class="td-note">Seated or standing</div></td><td>3×8–10</td><td>25 lb DBs</td><td>Greater ROM than barbell.</td></tr>
+      <tr><td><strong>Cable/pec deck flye</strong><div class="td-note">Chest isolation</div></td><td>3×12–15</td><td>25 lbs/side</td><td>Stretch and squeeze — not load.</td></tr>
+      <tr><td><strong>Arnold press</strong><div class="td-note">All 3 delt heads</div></td><td>3×10–12</td><td>20 lb DBs</td><td>Don't rush the rotation.</td></tr>
+      <tr><td><strong>OH tricep extension</strong><div class="td-note">Long head stretch</div></td><td>3×12–15</td><td>30 lbs</td><td>Long head = arm thickness from behind.</td></tr>
+    </tbody></table>
+  </div></div>
+</div>
+
+<!-- PULL -->
+<div id="page-pull" class="page">
+  <div class="page-title">Pull days</div>
+  <div class="page-sub">Back · Biceps · Rear delts · Legs</div>
+  <div class="info-bar">Deadlift (Pull A) and squat (Pull B) cover your entire posterior chain. Non-negotiable.</div>
+  <div class="sec-div"><span class="sd-tag">Pull A</span> Tuesday</div>
+  <div class="card"><div class="table-wrap">
+    <table><thead><tr><th>Exercise</th><th>Sets×Reps</th><th>Start</th><th>Note</th></tr></thead><tbody>
+      <tr><td><strong>Conventional deadlift</strong><div class="td-note">King of all lifts</div></td><td>3×4–6</td><td>135 lbs</td><td>Brace, hinge, drive the floor. +10 lbs when clean.</td></tr>
+      <tr><td><strong>Barbell bent-over row</strong><div class="td-note">Back thickness</div></td><td>4×6–8</td><td>75 lbs</td><td>Overhand. Pull to navel, not chest.</td></tr>
+      <tr><td><strong>Lat pulldown</strong><div class="td-note">Back width + V-taper</div></td><td>3×6–10</td><td>75 lbs</td><td>Move to pull-ups as you get lighter.</td></tr>
+      <tr><td><strong>Face pulls</strong><div class="td-note">Rear delt + rotator cuff</div></td><td>3×15–20</td><td>25 lbs</td><td>Never skip. Keeps shoulders healthy.</td></tr>
+      <tr><td><strong>Barbell curl</strong><div class="td-note">Bicep mass</div></td><td>3×10–12</td><td>45 lbs</td><td>Full extension. Supinate at the top.</td></tr>
+    </tbody></table>
+  </div></div>
+  <div class="sec-div"><span class="sd-tag">Pull B</span> Saturday</div>
+  <div class="card"><div class="table-wrap">
+    <table><thead><tr><th>Exercise</th><th>Sets×Reps</th><th>Start</th><th>Note</th></tr></thead><tbody>
+      <tr><td><strong>Back squat</strong><div class="td-note">Lower body anchor</div></td><td>4×5–8</td><td>95 lbs</td><td>Bar on traps, chest up, knees track toes.</td></tr>
+      <tr><td><strong>Seated cable row</strong><div class="td-note">Mid-back detail</div></td><td>4×8–12</td><td>75 lbs</td><td>Squeeze shoulder blades at end of each rep.</td></tr>
+      <tr><td><strong>Single-arm DB row</strong><div class="td-note">Back thickness</div></td><td>3×10–12/side</td><td>35 lbs</td><td>Full stretch at the bottom.</td></tr>
+      <tr><td><strong>Rear delt DB flye</strong><div class="td-note">Aesthetic rear shoulder</div></td><td>3×12–15</td><td>12 lbs</td><td>Bent over. Pinch shoulder blades.</td></tr>
+      <tr><td><strong>Hammer curls</strong><div class="td-note">Brachialis + forearm</div></td><td>3×10–12</td><td>25 lbs</td><td>Neutral grip. Builds thickness regular curls miss.</td></tr>
+    </tbody></table>
+  </div></div>
+</div>
+
+<!-- CARDIO -->
+<div id="page-cardio" class="page">
+  <div class="page-title">LISS cardio</div>
+  <div class="page-sub">Burns calories without competing with your lifting</div>
+  <div class="info-bar">LISS should never feel hard. Conversational pace only — if you're breathing hard, slow down.</div>
+  <div class="card"><div class="card-title">Protocol</div>
+    <div class="liss-row"><div class="liss-label">Target HR</div><div class="liss-body">115–135 bpm. Full sentences without gasping.</div></div>
+    <div class="liss-row"><div class="liss-label">Duration</div><div class="liss-body">30 min min. 45 min ideal on Wed and Fri.</div></div>
+    <div class="liss-row"><div class="liss-label">Options</div><div class="liss-body">Incline treadmill (3.5 mph, 8–12%) · Outdoor walk · Bike · Elliptical</div></div>
+    <div class="liss-row"><div class="liss-label">After lifting</div><div class="liss-body">Add 15–20 min post-session once 4–6 weeks in.</div></div>
+    <div class="liss-row"><div class="liss-label">Your steps</div><div class="liss-body">8–10k daily steps already count as LISS — factored into calorie targets.</div></div>
+    <div class="liss-row"><div class="liss-label">Long-term</div><div class="liss-body">Build to a continuous 30-min outdoor jog by month 6–8.</div></div>
+  </div>
+</div>
+
+<!-- NUTRITION -->
+<div id="page-nutrition" class="page">
+  <div class="page-title">Nutrition</div>
+  <div class="page-sub">Simple structure · Swappable proteins · No obsession</div>
+  <div class="info-bar">Target: <strong>2,550 cal/day.</strong> Hit 200g protein before worrying about anything else.</div>
+  <div class="metric-grid">
+    <div class="metric"><div class="metric-label">Calories</div><div class="metric-val">2,550<span class="metric-unit"> cal</span></div></div>
+    <div class="metric"><div class="metric-label">Protein</div><div class="metric-val">200<span class="metric-unit"> g</span></div></div>
+    <div class="metric"><div class="metric-label">Carbs</div><div class="metric-val">215<span class="metric-unit"> g</span></div></div>
+    <div class="metric"><div class="metric-label">Fat</div><div class="metric-val">70<span class="metric-unit"> g</span></div></div>
+  </div>
+  <div class="card"><div class="card-title">Daily meals</div>
+    <div class="meal-row"><div class="meal-time">7–8am</div><div class="meal-name">Protein-first breakfast</div><div class="meal-detail">4–5 eggs. Side of fruit. Black coffee. Or: Greek yogurt + protein powder.</div></div>
+    <div class="meal-row"><div class="meal-time">12–1pm</div><div class="meal-name">Lunch — lean protein + carbs</div><div class="meal-detail">6–8 oz chicken, 96% lean beef, or tuna. Rice, sweet potato, or wrap. Greens.</div></div>
+    <div class="meal-row"><div class="meal-time">3–4pm</div><div class="meal-name">Pre-workout snack (training days)</div><div class="meal-detail">Protein shake + piece of fruit. Skip or go small on rest days.</div></div>
+    <div class="meal-row"><div class="meal-time">6–8pm</div><div class="meal-name">Dinner — anchor meal</div><div class="meal-detail">6–8 oz lean protein. Unlimited vegetables. One starch on training days.</div></div>
+    <div class="meal-row"><div class="meal-time">Before bed</div><div class="meal-name">Casein / cottage cheese (optional)</div><div class="meal-detail">1 cup cottage cheese or casein shake. Only if genuinely hungry.</div></div>
+  </div>
+  <div class="card"><div class="card-title">Rules</div>
+    <div class="rule-block"><strong>Protein first.</strong> 200g before anything else.</div>
+    <div class="rule-block"><strong>Weekends count.</strong> A few drinks Saturday is fine. Going off-rail Fri–Sun erases 4–5 days of deficit.</div>
+    <div class="rule-block"><strong>Structure over obsession.</strong> Same meals, swappable proteins. Don't skip then eat a pizza at 10pm.</div>
+    <div class="rule-block"><strong>Drink water.</strong> ~124 oz daily. Controls hunger, improves performance.</div>
+  </div>
+</div>
+
+<!-- SUPPLEMENTS -->
+<div id="page-supps" class="page">
+  <div class="page-title">Supplements</div>
+  <div class="page-sub">Layer in tier order — don't jump ahead</div>
+  <div class="sec-div"><span class="tier-label t1">Tier 1</span> Start here</div>
+  <div class="card">
+    <div class="supp-row"><div class="supp-name">Whey protein isolate</div><div class="supp-dose">25–30g per scoop · as needed</div><div class="supp-detail">Fills protein gaps. Supplement meals, don't replace them. Optimum Nutrition, Transparent Labs, or Dymatize.</div></div>
+    <div class="supp-row"><div class="supp-name">Creatine monohydrate</div><div class="supp-dose">5g daily · any time · no cycling</div><div class="supp-detail">Most researched supplement in existence. Strength, muscle volume, cognitive benefits. Buy cheapest Creapure-certified unflavored you can find.</div></div>
+    <div class="supp-row"><div class="supp-name">Magnesium glycinate</div><div class="supp-dose">300–400mg · 30–45 min before bed</div><div class="supp-detail">Relaxes nervous system, improves sleep, supports recovery. Non-negotiable given your Tucson sleep environment.</div></div>
+  </div>
+  <div class="sec-div"><span class="tier-label t2">Tier 2</span> Month 2–3</div>
+  <div class="card">
+    <div class="supp-row"><div class="supp-name">Vitamin D3 + K2</div><div class="supp-dose">3,000–5,000 IU D3 · 100mcg K2 · with fattiest meal</div><div class="supp-detail">Most office workers are deficient. Supports testosterone, immune function, mood.</div></div>
+    <div class="supp-row"><div class="supp-name">Fish oil</div><div class="supp-dose">2–3g EPA/DHA · with food</div><div class="supp-detail">Reduces training inflammation. Check back label for EPA/DHA numbers. Nordic Naturals or Carlson.</div></div>
+    <div class="supp-row"><div class="supp-name">Zinc picolinate</div><div class="supp-dose">25–30mg · before bed with magnesium</div><div class="supp-detail">Supports testosterone, immune function, sleep. Don't exceed 40mg without also taking copper.</div></div>
+  </div>
+  <div class="sec-div"><span class="tier-label t3">Tier 3</span> Once fully consistent</div>
+  <div class="card">
+    <div class="supp-row"><div class="supp-name">Caffeine + L-theanine</div><div class="supp-dose">150–200mg caffeine · 200mg L-theanine · pre-workout</div><div class="supp-detail">Better than most pre-workouts. Black coffee + L-theanine capsule. Clean energy, no crash.</div></div>
+    <div class="supp-row"><div class="supp-name">Citrulline malate</div><div class="supp-dose">6–8g · 30–45 min pre-workout</div><div class="supp-detail">Genuine pump and improved endurance. Most noticeable once training intensity picks up.</div></div>
+    <div class="supp-row"><div class="supp-name">Beta-alanine</div><div class="supp-dose">3.2g daily · split dose</div><div class="supp-detail">Delays fatigue in higher rep work. Harmless tingling — split the dose to reduce it.</div></div>
+  </div>
+  <div class="sec-div"><span class="tier-label skip-l">Skip</span></div>
+  <div class="card"><p>Testosterone boosters · fat burners · proprietary pre-workout blends · BCAAs if hitting protein · anything with a label that reads like a chemistry exam.</p></div>
+  <div class="cost-row"><span>Monthly cost — Tier 1 + Tier 2</span><strong>$60–80</strong></div>
+</div>
+
+<!-- TRACKER -->
+<div id="page-tracker" class="page">
+  <div class="page-title">Workout log</div>
+  <div class="page-sub">Log sets, reps, weight · auto-flags when to move up</div>
+  <div class="week-nav-row">
+    <div class="week-nav-btns">
+      <button class="wn-btn" id="prev-week">&#8592;</button>
+      <div class="week-label" id="wk-label">Week 1</div>
+      <button class="wn-btn" id="next-week">&#8594;</button>
+    </div>
+    <div class="week-range-txt" id="wk-range"></div>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="prog-wrap">
+    <div class="prog-meta"><span>Week completion</span><span id="prog-pct">0 of 4 sessions</span></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div class="stabs-row" id="stabs"></div>
+  <div id="spanels"></div>
+</div>
+
+<!-- MILESTONES -->
+<div id="page-milestones" class="page">
+  <div class="page-title">Milestones</div>
+  <div class="page-sub">Your 12-month roadmap</div>
+  <div class="card">
+    <div class="milestone-row"><div class="ms-dot ms-m1">M1</div><div><div class="ms-title">Month 1 — Build the habit</div><div class="ms-body">Show up all 4 days every week. Weights feel light — good. Nail form. Expect 4–6 lbs lost. Consistency is the only metric.</div></div></div>
+    <div class="milestone-row"><div class="ms-dot ms-m2">M2</div><div><div class="ms-title">Month 2 — Strength foundation</div><div class="ms-body">Main lifts climbing weekly. Clothes fitting differently. Another 4–6 lbs down. LISS becomes automatic.</div></div></div>
+    <div class="milestone-row"><div class="ms-dot ms-m3">M3</div><div><div class="ms-title">Month 3 — First visible change</div><div class="ms-body">Other people start noticing. Chest and shoulders filling out. Face leaner. Down 12–18 lbs total. Compare to Day 1 photo.</div></div></div>
+    <div class="milestone-row"><div class="ms-dot ms-m6">M6</div><div><div class="ms-title">Month 6 — Transformation checkpoint</div><div class="ms-body">Down 20–30 lbs, well into the 220s. Shirt off in private — you'll be satisfied. Slow outdoor jog 15–20 min without stopping. This is your lifestyle now.</div></div></div>
+    <div class="milestone-row"><div class="ms-dot ms-m12">M12</div><div><div class="ms-title">Month 12 — The original goal</div><div class="ms-body">Run with your shirt off and feel genuinely good about it. 205–215 lbs. Visible shoulder, chest, and back definition. One year of consistency.</div></div></div>
+  </div>
+</div>
+
+<!-- CHECK-INS -->
+<div id="page-checkins" class="page">
+  <div class="page-title">Monthly check-ins</div>
+  <div class="page-sub">Data, not verdict</div>
+  <div class="card"><div class="card-title">Protocol</div>
+    <div class="rule-block"><strong>Weight.</strong> First Saturday of each month. Morning, after bathroom, before eating. Compare to last month only.</div>
+    <div class="rule-block"><strong>Progress photo.</strong> Same lighting, position, time each month. Front, side, back. Take Day 1 tonight.</div>
+    <div class="rule-block"><strong>Strength review.</strong> Open the log. Are your main lifts higher than 30 days ago? If not, it's nutrition or recovery — not the program.</div>
+    <div class="rule-block"><strong>Honest audit.</strong> 4 training days most weeks? Close to nutrition targets? Sleeping? Be honest.</div>
+    <div class="rule-block"><strong>One adjustment only.</strong> Scale stalled → drop 150–200 cal. Energy tanking → add 100–150. One change, two weeks.</div>
+  </div>
+  <div class="card"><div class="card-title">Sleep — most important variable right now</div><p>Inconsistent sleep elevates cortisol, increases hunger 20–30%, kills recovery, suppresses testosterone. Address room temperature first: blackout curtains + window AC. They work better together. Then anchor your wake time, cut screens before bed, take magnesium glycinate.</p></div>
+</div>
+
+</div><!-- end main-scroll -->
+
+<script>
+// ── PAGE NAVIGATION ──
+const pages = {};
+document.querySelectorAll('.page').forEach(p => { pages[p.id.replace('page-','')] = p; });
+
+function navTo(id) {
+  Object.values(pages).forEach(p => p.classList.remove('active'));
+  const target = pages[id];
+  if (target) {
+    target.classList.add('active');
+    document.getElementById('main-scroll').scrollTop = 0;
+  }
+  // update all nav items
+  document.querySelectorAll('.nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === id);
+  });
+  document.querySelectorAll('.bottom-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === id);
+  });
+  // init tracker on first visit
+  if (id === 'tracker' && !trackerBuilt) { buildTracker(); trackerBuilt = true; }
+  // close drawer
+  closeDrawer();
+}
+
+// wire all nav buttons
+document.querySelectorAll('[data-page]').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    navTo(this.dataset.page);
+  });
+});
+
+// ── DRAWER ──
+function openDrawer() {
+  document.getElementById('nav-drawer').classList.add('open');
+  document.getElementById('nav-overlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('nav-drawer').classList.remove('open');
+  document.getElementById('nav-overlay').classList.remove('open');
+}
+document.getElementById('menu-open-btn').addEventListener('click', openDrawer);
+document.getElementById('nav-overlay').addEventListener('click', closeDrawer);
+
+// ── TRACKER DATA ──
+const SESSIONS = [
+  { key:'pushA', label:'Push A', day:'Mon', exercises:[
+    { name:'Barbell bench press',    sets:4, lo:5,  hi:8,  sw:95,  inc:5,  unit:'lbs' },
+    { name:'Overhead press',         sets:3, lo:6,  hi:8,  sw:65,  inc:5,  unit:'lbs' },
+    { name:'Dips',                   sets:3, lo:8,  hi:12, sw:0,   inc:5,  unit:'BW+lbs' },
+    { name:'DB lateral raises',      sets:3, lo:12, hi:15, sw:10,  inc:2.5,unit:'lbs' },
+    { name:'Cable tricep pushdown',  sets:3, lo:12, hi:15, sw:35,  inc:5,  unit:'lbs' },
+  ]},
+  { key:'pullA', label:'Pull A', day:'Tue', exercises:[
+    { name:'Conventional deadlift',  sets:3, lo:4,  hi:6,  sw:135, inc:10, unit:'lbs' },
+    { name:'Barbell bent-over row',  sets:4, lo:6,  hi:8,  sw:75,  inc:5,  unit:'lbs' },
+    { name:'Lat pulldown',           sets:3, lo:6,  hi:10, sw:75,  inc:5,  unit:'lbs' },
+    { name:'Face pulls',             sets:3, lo:15, hi:20, sw:25,  inc:5,  unit:'lbs' },
+    { name:'Barbell curl',           sets:3, lo:10, hi:12, sw:45,  inc:5,  unit:'lbs' },
+  ]},
+  { key:'pushB', label:'Push B', day:'Thu', exercises:[
+    { name:'Incline press',          sets:4, lo:6,  hi:10, sw:85,  inc:5,  unit:'lbs' },
+    { name:'DB shoulder press',      sets:3, lo:8,  hi:10, sw:25,  inc:5,  unit:'lbs' },
+    { name:'Cable/pec deck flye',    sets:3, lo:12, hi:15, sw:25,  inc:5,  unit:'lbs' },
+    { name:'Arnold press',           sets:3, lo:10, hi:12, sw:20,  inc:5,  unit:'lbs' },
+    { name:'OH tricep extension',    sets:3, lo:12, hi:15, sw:30,  inc:5,  unit:'lbs' },
+  ]},
+  { key:'pullB', label:'Pull B', day:'Sat', exercises:[
+    { name:'Back squat',             sets:4, lo:5,  hi:8,  sw:95,  inc:5,  unit:'lbs' },
+    { name:'Seated cable row',       sets:4, lo:8,  hi:12, sw:75,  inc:5,  unit:'lbs' },
+    { name:'Single-arm DB row',      sets:3, lo:10, hi:12, sw:35,  inc:5,  unit:'lbs' },
+    { name:'Rear delt DB flye',      sets:3, lo:12, hi:15, sw:12,  inc:2.5,unit:'lbs' },
+    { name:'Hammer curls',           sets:3, lo:10, hi:12, sw:25,  inc:5,  unit:'lbs' },
+  ]},
+];
+
+const SESSION_DAY = { Mon:'pushA', Tue:'pullA', Wed:null, Thu:'pushB', Fri:null, Sat:'pullB', Sun:null };
+const DAY_TYPE = { Mon:'Push A', Tue:'Pull A', Wed:'LISS', Thu:'Push B', Fri:'LISS', Sat:'Pull B', Sun:'Rest' };
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+let currentWeek = 1;
+let trackerBuilt = false;
+
+function sk(w,k){ return 'kf3_w'+w+'_'+k; }
+function lk(w,k,e){ return 'kf3_lock_w'+w+'_'+k+'_'+e; }
+
+function saveData(week, key) {
+  const sess = SESSIONS.find(s=>s.key===key);
+  const obj = { exs:{}, sNote: document.getElementById('sn_'+key)?.value||'' };
+  sess.exercises.forEach((ex,ei)=>{
+    obj.exs[ei] = { sets:[], note: document.getElementById('en_'+key+'_'+ei)?.value||'' };
+    for(let i=0;i<ex.sets;i++){
+      obj.exs[ei].sets.push({
+        w: document.getElementById('iw_'+key+'_'+ei+'_'+i)?.value||'',
+        r: document.getElementById('ir_'+key+'_'+ei+'_'+i)?.value||''
+      });
+    }
+  });
+  localStorage.setItem(sk(week,key), JSON.stringify(obj));
+  refreshFlags(key); refreshCal(); refreshProg(); refreshStabs();
+  const ok = document.getElementById('ok_'+key);
+  if(ok){ ok.style.opacity='1'; setTimeout(()=>ok.style.opacity='0', 2000); }
+}
+
+function loadData(week, key) {
+  try { return JSON.parse(localStorage.getItem(sk(week,key))||'null'); } catch(e){ return null; }
+}
+
+function hasData(week, key) {
+  const d = loadData(week,key);
+  return d ? Object.values(d.exs||{}).some(ex=>ex.sets.some(s=>s.w||s.r)) : false;
+}
+
+function getTarget(key, ei, week) {
+  const ex = SESSIONS.find(s=>s.key===key).exercises[ei];
+  let w = ex.sw;
+  for(let wk=1;wk<week;wk++){
+    const d = loadData(wk,key);
+    if(!d||!d.exs[ei]) continue;
+    const sets = d.exs[ei].sets;
+    if(sets.length===ex.sets && sets.every(s=>s.r!==''&&parseInt(s.r)>=ex.hi)) w+=ex.inc;
+  }
+  return w;
+}
+
+function isLocked(week, key, ei){
+  return localStorage.getItem(lk(week,key,ei))==='1';
+}
+
+function lockExercise(week, key, ei){
+  saveData(week, key);
+  localStorage.setItem(lk(week,key,ei),'1');
+  const ex = SESSIONS.find(s=>s.key===key).exercises[ei];
+  for(let i=0;i<ex.sets;i++){
+    const w=document.getElementById('iw_'+key+'_'+ei+'_'+i);
+    const r=document.getElementById('ir_'+key+'_'+ei+'_'+i);
+    if(w) w.disabled=true;
+    if(r) r.disabled=true;
+  }
+  const n=document.getElementById('en_'+key+'_'+ei);
+  if(n) n.disabled=true;
+  const btn=document.getElementById('lbtn_'+key+'_'+ei);
+  if(btn){ btn.textContent='Locked ✓'; btn.classList.add('locked'); btn.disabled=true; }
+  const blk=document.getElementById('exblk_'+key+'_'+ei);
+  if(blk) blk.classList.add('locked-block');
+}
+
+function refreshFlags(key) {
+  const sess = SESSIONS.find(s=>s.key===key);
+  sess.exercises.forEach((ex,ei)=>{
+    const badge = document.getElementById('upbadge_'+key+'_'+ei);
+    if(!badge) return;
+    let allHit=true, any=false;
+    for(let i=0;i<ex.sets;i++){
+      const r=document.getElementById('ir_'+key+'_'+ei+'_'+i);
+      const w=document.getElementById('iw_'+key+'_'+ei+'_'+i);
+      if(!r||r.value===''){allHit=false;continue;}
+      any=true;
+      if(parseInt(r.value)<ex.hi) allHit=false;
+      r.classList.toggle('hit', r.value!=='');
+      if(w) w.classList.toggle('hit', w.value!=='');
+    }
+    badge.style.display=(allHit&&any)?'inline-block':'none';
+  });
+}
+
+function refreshCal() {
+  const grid=document.getElementById('cal-grid');
+  if(!grid) return;
+  grid.innerHTML='';
+  DAYS.forEach(day=>{
+    const k=SESSION_DAY[day];
+    const logged=k?hasData(currentWeek,k):false;
+    const div=document.createElement('div');
+    div.className='cal-cell'+(k?' tap':'')+(logged?' logged':'');
+    if(k) div.addEventListener('click',()=>switchStab(k));
+    div.innerHTML=`<div class="cal-dn">${day}</div><div class="cal-dt">${DAY_TYPE[day]}</div><div class="cal-dot"></div>`;
+    grid.appendChild(div);
+  });
+}
+
+function refreshProg() {
+  const done=SESSIONS.filter(s=>hasData(currentWeek,s.key)).length;
+  const pct=Math.round(done/4*100);
+  const f=document.getElementById('prog-fill');
+  const p=document.getElementById('prog-pct');
+  if(f) f.style.width=pct+'%';
+  if(p) p.textContent=done+' of 4 sessions';
+}
+
+function refreshStabs() {
+  SESSIONS.forEach(s=>{
+    const t=document.querySelector('.stab[data-sk="'+s.key+'"]');
+    if(!t) return;
+    t.classList.toggle('done', hasData(currentWeek,s.key));
+  });
+}
+
+function switchStab(key) {
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.spanel').forEach(p=>p.classList.remove('active'));
+  const t=document.querySelector('.stab[data-sk="'+key+'"]');
+  const p=document.getElementById('sp_'+key);
+  if(t) t.classList.add('active');
+  if(p) p.classList.add('active');
+}
+
+function changeWeek(dir) {
+  const n=currentWeek+dir;
+  if(n<1||n>52) return;
+  currentWeek=n;
+  buildTracker();
+}
+
+function buildTracker() {
+  const base=new Date(2026,4,17);
+  const ws=new Date(base.getTime()+(currentWeek-1)*7*86400000);
+  const we=new Date(ws.getTime()+6*86400000);
+  const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  document.getElementById('wk-label').textContent='Week '+currentWeek;
+  const rng=document.getElementById('wk-range');
+  if(rng) rng.textContent=fmt(ws)+' – '+fmt(we);
+
+  const stabsEl=document.getElementById('stabs');
+  const panelsEl=document.getElementById('spanels');
+  stabsEl.innerHTML=''; panelsEl.innerHTML='';
+
+  SESSIONS.forEach((sess,si)=>{
+    const tab=document.createElement('button');
+    tab.className='stab'+(si===0?' active':'');
+    tab.dataset.sk=sess.key;
+    tab.textContent=sess.day+' · '+sess.label;
+    tab.addEventListener('click',()=>switchStab(sess.key));
+    stabsEl.appendChild(tab);
+
+    const saved=loadData(currentWeek,sess.key);
+    let html='';
+
+    sess.exercises.forEach((ex,ei)=>{
+      const tw=getTarget(sess.key,ei,currentWeek);
+      const sx=saved?.exs?.[ei];
+      const locked=isLocked(currentWeek,sess.key,ei);
+      html+=`<div class="ex-block${locked?' locked-block':''}" id="exblk_${sess.key}_${ei}">
+        <div class="ex-top">
+          <div class="ex-title-row">
+            <div>
+              <div class="ex-title">${ex.name}</div>
+              <div class="ex-sub">${ex.sets} sets · ${ex.lo}–${ex.hi} reps</div>
+            </div>
+          </div>
+          <div class="ex-badges">
+            <div class="target-badge">Target: ${tw===0?'Bodyweight':tw+' '+ex.unit}</div>
+            <div class="up-badge" id="upbadge_${sess.key}_${ei}">&#8679; Move up next session</div>
+          </div>
+        </div>
+        <div class="ex-body">
+          <div class="sets-hdr">
+            <div class="sh">#</div><div class="sh">Weight</div><div class="sh">Reps</div><div class="sh">Target</div>
+          </div>`;
+      for(let i=0;i<ex.sets;i++){
+        const sv=sx?.sets?.[i];
+        html+=`<div class="sets-row2">
+          <div class="snum">${i+1}</div>
+          <input class="sinput${sv?.w?' hit':''}" type="number" inputmode="decimal" id="iw_${sess.key}_${ei}_${i}" placeholder="${tw||'BW'}" value="${sv?.w||''}" ${locked?'disabled':''}>
+          <input class="sinput${sv?.r?' hit':''}" type="number" inputmode="decimal" id="ir_${sess.key}_${ei}_${i}" placeholder="${ex.lo}–${ex.hi}" value="${sv?.r||''}" ${locked?'disabled':''}>
+          <div class="tgt-cell">${ex.lo}–${ex.hi}<br>@ ${tw===0?'BW':tw+' lbs'}</div>
+        </div>`;
+      }
+      const sn=sx?.note||'';
+      html+=`<textarea class="ex-note" id="en_${sess.key}_${ei}" placeholder="Notes for this exercise..." ${locked?'disabled':''}>${sn}</textarea>
+        <div class="ex-actions">
+          <button class="lock-btn${locked?' locked':''}" id="lbtn_${sess.key}_${ei}" ${locked?'disabled':''}>${locked?'Locked ✓':'Lock exercise'}</button>
+          ${locked?'<span class="locked-stamp">Protected</span>':''}
+        </div>
+      </div></div>`;
+    });
+
+    const sNote=saved?.sNote||'';
+    html+=`<div class="card" style="margin-top:12px;">
+      <div class="card-title">Session notes</div>
+      <div class="sess-note-wrap">
+        <textarea class="sess-note" id="sn_${sess.key}" placeholder="How did the session feel? Energy, sleep, wins, pain points...">${sNote}</textarea>
+      </div>
+    </div>
+    <div class="save-row">
+      <button class="save-btn" id="savebtn_${sess.key}">Save session</button>
+      <span class="save-ok" id="ok_${sess.key}">Saved ✓</span>
+    </div>`;
+
+    const panel=document.createElement('div');
+    panel.id='sp_'+sess.key;
+    panel.className='spanel'+(si===0?' active':'');
+    panel.innerHTML=html;
+    panelsEl.appendChild(panel);
+
+    // Wire inputs via event delegation after DOM insert
+    setTimeout(()=>{
+      const sk2=sess.key;
+      // refresh flags on input
+      sess.exercises.forEach((ex2,ei2)=>{
+        for(let i=0;i<ex2.sets;i++){
+          const wEl=document.getElementById('iw_'+sk2+'_'+ei2+'_'+i);
+          const rEl=document.getElementById('ir_'+sk2+'_'+ei2+'_'+i);
+          if(wEl) wEl.addEventListener('input',()=>refreshFlags(sk2));
+          if(rEl) rEl.addEventListener('input',()=>refreshFlags(sk2));
+        }
+        const lbtn=document.getElementById('lbtn_'+sk2+'_'+ei2);
+        if(lbtn&&!lbtn.disabled) lbtn.addEventListener('click',()=>lockExercise(currentWeek,sk2,ei2));
+      });
+      const sbtn=document.getElementById('savebtn_'+sk2);
+      if(sbtn) sbtn.addEventListener('click',()=>saveData(currentWeek,sk2));
+      refreshFlags(sk2);
+    }, 0);
+  });
+
+  refreshCal(); refreshProg(); refreshStabs();
+}
+
+// Wire week nav buttons
+document.getElementById('prev-week').addEventListener('click',()=>changeWeek(-1));
+document.getElementById('next-week').addEventListener('click',()=>changeWeek(1));
+</script>
+</body>
+</html>
